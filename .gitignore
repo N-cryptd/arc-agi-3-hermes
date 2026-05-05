@@ -1,0 +1,20 @@
+# API keys - DO NOT commit
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Test outputs
+benchmark_results.json
+game_exploration.json
+
+# ARC-AGI-3-Agents repo (clone separately)
+ARC-AGI-3-Agents/
+
+# Kaggle
+.kaggle/
+
+# IDE
+.idea/
+.vscode/

@@ -1,0 +1,157 @@
+{
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "# HermesAgent — ARC-AGI-3\n",
+        "\n",
+        "LLM-powered grid puzzle solver for the [ARC-AGI-3 Competition](https://www.kaggle.com/competitions/arc-prize-2026-arc-agi-3). \n",
+        "\n",
+        "**Architecture:** EXPLORE → UNDERSTAND → PLAN → EXECUTE → ADAPT → REPEAT\n",
+        "\n",
+        "| Module | Purpose |\n",
+        "|--------|--------|\n",
+        "| GridParser | Multi-layer 64x64 grid → structured objects, diffs |\n",
+        "| Explorer | Systematic action probing, effect classification |\n",
+        "| LLM Reasoner | glm-5.1 via NVIDIA NIM (text-based reasoning) |\n",
+        "| Adaptive Executor | Orchestrates the loop, handles multi-level play |"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Setup"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {},
+      "outputs": [],
+      "source": [
+        "# Install dependencies\n",
+        "!cd /kaggle/working/ARC-AGI-3-Agents && pip install -e . -q 2>&1 | tail -5"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {},
+      "outputs": [],
+      "source": [
+        "# Copy HermesAgent modules into the package\n",
+        "import shutil\n",
+        "import os\n",
+        "\n",
+        "agent_dir = '/kaggle/working/ARC-AGI-3-Agents/agents/templates'\n",
+        "src_dir = '/kaggle/input/hermesagent-files'  # Upload your files as a Kaggle Dataset\n",
+        "\n",
+        "# If running from uploaded dataset\n",
+        "if os.path.exists(src_dir):\n",
+        "    for f in ['hermes_agent.py', 'grid_parser.py', 'explorer.py', 'llm_reasoner.py']:\n",
+        "        src = os.path.join(src_dir, f)\n",
+        "        dst = os.path.join(agent_dir, f)\n",
+        "        if os.path.exists(src):\n",
+        "            shutil.copy2(src, dst)\n",
+        "            print(f'Copied {f}')\n",
+        "else:\n",
+        "    print('WARNING: No hermesagent-files dataset found. Using built-in modules.')"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {},
+      "outputs": [],
+      "source": [
+        "# Set API keys (use Kaggle Secrets in production)\n",
+        "import os\n",
+        "\n",
+        "os.environ['ARC_API_KEY'] = 'YOUR_ARC_API_KEY'  # From https://three.arcprize.org/\n",
+        "os.environ['NVIDIA_NIM_API_KEY'] = 'YOUR_NIM_KEY'  # From https://build.nvidia.com/\n",
+        "os.environ['OPENROUTER_API_KEY'] = 'YOUR_OPENROUTER_KEY'  # Optional fallback\n",
+        "\n",
+        "# Or load from Kaggle Secrets:\n",
+        "from kaggle_secrets import UserSecretsClient\n",
+        "try:\n",
+        "    secrets = UserSecretsClient()\n",
+        "    os.environ['ARC_API_KEY'] = secrets.get_secret('ARC_API_KEY')\n",
+        "    os.environ['NVIDIA_NIM_API_KEY'] = secrets.get_secret('NVIDIA_NIM_API_KEY')\n",
+        "    print('✅ Secrets loaded')\n",
+        "except:\n",
+        "    print('⚠️ Using hardcoded keys (for debugging only)')"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {},
+      "outputs": [],
+      "source": [
+        "# Verify installation\n",
+        "import sys\n",
+        "sys.path.insert(0, '/kaggle/working/ARC-AGI-3-Agents')\n",
+        "\n",
+        "from agents import AVAILABLE_AGENTS\n",
+        "print('HermesAgent available:', 'hermesagent' in AVAILABLE_AGENTS)\n",
+        "print(f'Total agents: {len(AVAILABLE_AGENTS)}')"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Run HermesAgent"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {},
+      "outputs": [],
+      "source": [
+        "%%time\n",
+        "# Run HermesAgent on all games\n",
+        "!cd /kaggle/working/ARC-AGI-3-Agents && \\\n",
+        "    ARC_API_KEY=$ARC_API_KEY \\\n",
+        "    NVIDIA_NIM_API_KEY=$NVIDIA_NIM_API_KEY \\\n",
+        "    uv run main.py --agent=hermesagent --tags=hermes,production"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Quick Test (Single Game)"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {},
+      "outputs": [],
+      "source": [
+        "# Test on a single game (faster iteration)\n",
+        "!cd /kaggle/working/ARC-AGI-3-Agents && \\\n",
+        "    ARC_API_KEY=$ARC_API_KEY \\\n",
+        "    NVIDIA_NIM_API_KEY=$NVIDIA_NIM_API_KEY \\\n",
+        "    uv run main.py --agent=hermesagent --game=s5i5 --tags=test,single"
+      ]
+    }
+  ],
+  "metadata": {
+    "kernelspec": {
+      "display_name": "Python 3",
+      "language": "python",
+      "name": "python3"
+    },
+    "language_info": {
+      "name": "python",
+      "version": "3.10.0"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 4
+}
