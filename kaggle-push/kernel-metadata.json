@@ -1,0 +1,14 @@
+{
+  "id": "nmar123/hermesagent-arc-agi-3",
+  "title": "HermesAgent ARC AGI 3",
+  "code_file": "notebook.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "competition_sources": ["arc-prize-2026-arc-agi-3"],
+  "dataset_sources": [],
+  "keywords": ["arc-agi-3", "llm", "agent", "grid-puzzle"],
+  "docker_image_pinning": false
+}
